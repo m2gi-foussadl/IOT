@@ -1,0 +1,6 @@
+{
+  "makefile.configureOnOpen": false,
+  
+  // https://github.com/Marus/cortex-debug/blob/master/debug_attributes.md
+  "cortex-debug.gdbPath": "/usr/bin/gdb-multiarch"
+}
