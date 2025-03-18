@@ -1,0 +1,13 @@
+Le programme principale exécute une boucle qui va initialiser UART0, UART1 et UART2.
+Puis après initialisation, il va "enable" pour UART0.
+
+Je ne sais pas encore ce que cela veut dire réellement, mais je pense que cela veut dire que l'on peut maintenant envoyer des données à UART0.
+Réponse :
+
+Ensuite il attend de recevoir des données de UART0 avant de les écrire.
+
+Si on a une erreure lors du make run qui est en lien avec pulseaudio, dans notre cas on ne s'en sert pas donc on peut le désactiver.
+Pour cela on peut rajouter : QEMU_AUDIO_DRV=none avant make run.
+
+Qu'est ce qui fait que le programme boucle à l'infini ? Le "panic" dans uart_receive et uart_send semblait être responsable de ça mais enfaite non.
+Le programme boucle à l'infini car si la fonction _start return, alors dans le fichier startup.s on boucle à l'infini
