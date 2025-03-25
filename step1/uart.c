@@ -54,9 +54,17 @@ void uart_disable(uint32_t uartno) {
 }
 
 void uart_receive(uint8_t uartno, char *pt) {
-  struct uart*uart = &uarts[uartno];
-  // TODO: not implemented yet...
-  panic();
+    struct uart* uart = &uarts[uartno];
+    volatile uint32_t* uart_dr = (volatile uint32_t*)((uintptr_t)uart->bar + UART_DR);
+    volatile uint32_t* uart_fr = (volatile uint32_t*)((uintptr_t)uart->bar + UART_FR);
+
+    // Attendre jusqu'à ce qu'il y ait des données disponibles
+    while (*uart_fr & (1 << 4)) {
+        // Le bit 4 du registre de statut (FR) indique si le FIFO RX est vide
+    }
+
+    // Lire le caractère du registre de données (DR)
+    *pt = (char)(*uart_dr & 0xFF);
 }
 
 /**
@@ -64,9 +72,17 @@ void uart_receive(uint8_t uartno, char *pt) {
  * until the character has been sent.
  */
 void uart_send(uint8_t uartno, char s) {
-  struct uart* uart = &uarts[uartno];
-  // TODO: not implemented yet...
-  panic();
+    struct uart* uart = &uarts[uartno];
+    volatile uint32_t* uart_dr = (volatile uint32_t*)((uintptr_t)uart->bar + UART_DR);
+    volatile uint32_t* uart_fr = (volatile uint32_t*)((uintptr_t)uart->bar + UART_FR);
+
+    // Attendre jusqu'à ce qu'il y ait de la place dans le FIFO de transmission
+    while (*uart_fr & (1 << 5)) {
+        // Le bit 5 du registre de statut (FR) indique si le FIFO TX est plein
+    }
+
+    // Écrire le caractère dans le registre de données (DR)
+    *uart_dr = (uint32_t)s;
 }
 
 /**

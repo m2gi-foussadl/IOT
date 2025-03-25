@@ -6,8 +6,22 @@ Réponse :
 
 Ensuite il attend de recevoir des données de UART0 avant de les écrire.
 
-Si on a une erreure lors du make run qui est en lien avec pulseaudio, dans notre cas on ne s'en sert pas donc on peut le désactiver.
+Si on a une error lors du make run qui est en lien avec pulseaudio, dans notre cas on ne s'en sert pas donc on peut le désactiver.
 Pour cela on peut rajouter : QEMU_AUDIO_DRV=none avant make run.
 
 Qu'est ce qui fait que le programme boucle à l'infini ? Le "panic" dans uart_receive et uart_send semblait être responsable de ça mais enfaite non.
-Le programme boucle à l'infini car si la fonction _start return, alors dans le fichier startup.s on boucle à l'infini
+Le programme boucle à l'infini car si la fonction _start return, alors dans le fichier startup.s on boucle à l'infini.
+De plus comme l'uart n' pas la bonne adresse, il ne peut pas recevoir de données et donc le programme boucle à l'infini.
+
+Afin de faire fonctionner la console, il faut modifier l'adresse de départ de UART0 qui correspond à 0x101f1000.
+L'adresse pour UART0 est définie par la configuration matérielle de la carte sur laquelle le code est exécuté.
+Dans ce cas, il s'agit de l'adresse de base pour le contrôleur UART pour ARM926EJ-S.
+Cette adresse est spécifiée dans la documentation technique de la carte, qui décrit les adresses mémoire réservées pour les différents périphériques matériels, y compris les contrôleurs UART.*
+
+Pour receive et send des données on va vérifier les bits  du registre de status pour savoir si il y a ou non des données à lire ou si on peut écrire des données.
+
+La solution a la perte de données du buffer -> l'endormissement du processeur avec halt(interruption)
+Ou bien le PIC ou VIC (Programmable Interrupt Controller) qui va gérer les interruptions et les priorités des interruptions.
+
+Pour avoir un traitement des interruptions plus rapide, il faut que le VIC_BASE_ADDR soit à 0xFFFFF000 selon la documentation
+Le nombre maximum d'interruptions est de 32, il dépend du nombre de ligne du VIC, autrement dit du nombre de source d'interruption.
