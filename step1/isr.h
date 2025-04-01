@@ -42,13 +42,13 @@
  * UART Interrupts
  */
 #define UART0_IRQ 12
-#define UART0_IRQ_MASK ???
+#define UART0_IRQ_MASK (1 << UART0_IRQ)
 
 #define UART1_IRQ 13
-#define UART1_IRQ_MASK ???
+#define UART1_IRQ_MASK (1 << UART1_IRQ)
 
 #define UART2_IRQ 14
-#define UART2_IRQ_MASK ???
+#define UART2_IRQ_MASK (1 << UART2_IRQ)
 
 /*
  * Timers:

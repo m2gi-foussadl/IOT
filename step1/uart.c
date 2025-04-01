@@ -33,6 +33,7 @@ void uart_init(uint32_t uartno, void* bar) {
   // when running on QEMU, the UARTs are
   // already initialized, as long as we
   // do not rely on interrupts.
+    uart_enable(uartno);
 }
 
 void uarts_init() {
@@ -42,15 +43,17 @@ void uarts_init() {
 }
 
 void uart_enable(uint32_t uartno) {
-  struct uart*uart = &uarts[uartno];
-  // nothing to do here, as long as
-  // we do not rely on interrupts
+    struct uart*uart = &uarts[uartno];
+    // Agir sur le registre UARTIMSC pour activer les interruptions
+    volatile uint32_t* uart_imsc = (volatile uint32_t*)((uintptr_t)uart->bar + UARTIMSC);
+    *uart_imsc = 1;
 }
 
 void uart_disable(uint32_t uartno) {
-  struct uart*uart = &uarts[uartno];
-  // nothing to do here, as long as
-  // we do not rely on interrupts
+    struct uart*uart = &uarts[uartno];
+    // Agir sur le registre UARTIMSC pour désactiver les interruptions
+    volatile uint32_t* uart_imsc = (volatile uint32_t*)((uintptr_t)uart->bar + UARTIMSC);
+    *uart_imsc = 0;
 }
 
 void uart_receive(uint8_t uartno, char *pt) {

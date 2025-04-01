@@ -11,6 +11,9 @@
  * You should have received a copy of the GNU General Public License along with this program.
  * If not, see <https://www.gnu.org/licenses/>.
  */
+ .global irq_stack_top
+ irq_stack_top:
+     .word 0x0
 
  /* Standard definitions of Mode bits and Interrupt (I & F) flags in PSRs */
 

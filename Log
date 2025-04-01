@@ -1,3 +1,9 @@
+Un UART c'est le composant utilisé pour faire la liaison entre l'ordinateur et le port série.
+
+Pour debug : - make debug dans un terminal
+             - Dans un autre terminal, taper gdb-multiarch build/kernel.elf
+             - Une fois dans gdb, taper tar rem : 1234
+
 Le programme principale exécute une boucle qui va initialiser UART0, UART1 et UART2.
 Puis après initialisation, il va "enable" pour UART0.
 
@@ -25,3 +31,20 @@ Ou bien le PIC ou VIC (Programmable Interrupt Controller) qui va gérer les inte
 
 Pour avoir un traitement des interruptions plus rapide, il faut que le VIC_BASE_ADDR soit à 0xFFFFF000 selon la documentation
 Le nombre maximum d'interruptions est de 32, il dépend du nombre de ligne du VIC, autrement dit du nombre de source d'interruption.
+
+Pour gérer les interruptions, il faut activer les interruptions dans le VIC et dans le CPU via les fonctions vic_enable_irq et core_enable_irq.
+Ensuite, il faut activer les interruptions pour le périphérique qui va générer les interruptions via la fonction uart_enable_interrupt.
+Pour ça, on va activer les interruptions en agissant sur le registre VICINTENABLE.
+Les timers dans isr.h servent à ajouter un délai après voir reçu une interruption.
+
+Le pc est en avance sur le programme, il faut donc le remettre à la bonne adresse pour qu'il puisse continuer à exécuter le programme.
+Il est en avance car c'est une pipeline à 3 étages : Fetch, Decode, Execute.
+                                                     (Ox00) (0x04)  (0x08)
+
+Dans le traitement des interruptions, il ne faut pas faire de traitement long pour éviter le risque de perdre des interruptions.
+A l'approche d'une section critique de code (manipulation de données partagées), il faut désactiver les interruptions au niveau du core pour éviter les problèmes.
+On peut aussi utiliser les ring buffer pour gérer ce genre de cas.
+Dans le handler, on va mettre des données dans la ring et dans le start on va les get.
+
+Avec un listener, pour uart_read, on veut que l'application lise toutes les données disponibles sinon on n'indiquera plus au listener que des données sont disponibles à lire.
+Pour le write, on veut que l'application écrive toutes les données disponibles sinon on n'indiquera plus au listener que de la place est disponible.
