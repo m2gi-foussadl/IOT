@@ -41,20 +41,19 @@ struct handler handlers[NIRQS];
  */
 void isr() {
     //Fonction qui doit appeler la fonction de callback associée à l'interruption
-    uint32_t irq_status = mmio_read32((void *) VIC_BASE_ADDR, VICIRQSTATUS);
+    uint32_t irq_status = *(volatile uint32_t*)(VIC_BASE_ADDR + VICIRQSTATUS);
 
-    for (uint32_t i = 0; i < NIRQS; i++) {
-        struct handler *handler = &handlers[i];
+    for (int i = 0; i < NIRQS; i++) {
         // On regarde si l'interruption est active
         if (irq_status & (1 << i)) {
-            // Appel de la fonction de callback associée à l'interruption
-            handler->callback(i, handler->cookie);
+            //si l y a une interruption active, on la traite
+            if (handlers[i].callback) {
+                // Appel de la fonction de callback associée à l'interruption
+                handlers[i].callback(i, handlers[i].cookie);
+            }
         }
     }
     // Marqué le traitement de l'interruption comme terminé sur le bit VICINTCLEAR
-    mmio_write32((void *) VIC_BASE_ADDR, VICINTCLEAR, irq_status);
-
-    return;
 }
 
 void core_enable_irqs() {
@@ -75,11 +74,13 @@ void core_halt() {
  * sides.
  */
 void vic_setup_irqs() {
-    for (int i = 0; i < NIRQS; i++) {
-        handlers[i].callback = 0;
-        handlers[i].cookie = 0;
-    }
     _irqs_setup();
+    for (uint32_t i = 0; i < NIRQS; i++) {
+        vic_disable_irq(i);
+    }
+    *(volatile uint32_t*)(VIC_BASE_ADDR + VICINTCLEAR) = 0xFFFFFFFF;
+    // toutes les interruptions sont désactivées
+    *(volatile uint32_t*)(VIC_BASE_ADDR + VICINTENABLE) = 0x00000000;
 }
 
 /*
@@ -89,12 +90,13 @@ void vic_enable_irq(uint32_t irq, void (*callback)(uint32_t, void*), void *cooki
     handlers[irq].callback = callback;
     handlers[irq].cookie = cookie;
 
-    mmio_write32((void *) VIC_BASE_ADDR, VICINTENABLE, 1 << irq);
+    *(volatile uint32_t *) (VIC_BASE_ADDR + VICINTENABLE) |= (1 << irq);
 }
-
 /*
  * Disables the given interrupt at the VIC level.
  */
 void vic_disable_irq(uint32_t irq) {
-    mmio_write32((void *) VIC_BASE_ADDR, VICINTENABLE, 0 << irq);
+    handlers[irq].callback = 0;
+    handlers[irq].cookie = 0;
+    *(volatile uint32_t *) (VIC_BASE_ADDR + VICINTCLEAR) &= ~(1 << irq);
 }

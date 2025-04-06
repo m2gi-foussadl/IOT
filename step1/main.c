@@ -31,20 +31,27 @@ void check_stacks() {
 */
 }
 
+void uart_handler(uint32_t irq, void *cookie) {
+    char c;
+    uart_receive(UART0, &c);
+    uart_send_string(UART0, "Received: ");
+    uart_send(UART0, c);
+    uart_send_string(UART0, "\n");
+}
 /**
  * This is the C entry point,
  * upcalled once the hardware has been setup properly
  * in assembly language, see the startup.s file.
  */
 void _start(void) {
-    char c;
     check_stacks();
+    vic_setup_irqs();
     uarts_init();
     uart_enable(UART0);
-    //Appeler la fonction qui enable les interruptions sur le COre
+    vic_enable_irq(UART0_IRQ, uart_handler, NULL);
     core_enable_irqs();
     for (;;) {
-      core_halt();
+        core_halt();
     }
 }
 

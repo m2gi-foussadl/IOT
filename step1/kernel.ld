@@ -24,11 +24,11 @@ SECTIONS
   }
   . = 0x100;
   .text : { 
-     build/*(.text) 
+     build/*(.text)
   }
-  . = ALIGN(4); 
-  .data : { 
-    build/*(.data) 
+  . = ALIGN(4);
+  .data : {
+    build/*(.data)
   }
   /*
    * Include the data sections that must be zeroed upon starting up.
@@ -37,26 +37,40 @@ SECTIONS
    * unaligned accesses in memory by the ARM processor.
    * Look at the startup code to see how memory is reset to zero
    * between _bss_start and _bss_end.
-   */ 
-  . = ALIGN(4); 
+   */
+  . = ALIGN(4);
   _bss_start = .;
   .bss . : {
     build/*(.bss COMMON)
-  } 
-  . = ALIGN(4); 
+  }
+  . = ALIGN(4);
   _bss_end = .;
-  
-  /* 
+
+  /*
    * Finally, reserve some memory for the C stack
-   * Remember that stacks are growing downward, 
-   * so the top of the stack is at the end of 
-   * the reserved memory region. 
-   * NOTA BENE: 
-   *    there are no runtime checks to check that 
+   * Remember that stacks are growing downward,
+   * so the top of the stack is at the end of
+   * the reserved memory region.
+   * NOTA BENE:
+   *    there are no runtime checks to check that
    *    your stack does not overflow at runtime when
-   *    nesting too many C function calls. 
+   *    nesting too many C function calls.
    */
   . = ALIGN(8);
   . = . + 0x1000; /* 4KB of stack memory */
   stack_top = .;
+
+  /*
+   * Finally, reserve some memory for the C stack
+   * Remember that stacks are growing downward,
+   * so the top of the stack is at the end of
+   * the reserved memory region.
+   * NOTA BENE:
+   *    there are no runtime checks to check that
+   *    your stack does not overflow at runtime when
+   *    nesting too many C function calls.
+   */
+  . = ALIGN(8);
+  . = . + 0x1000; /* 4KB of stack memory */
+  irq_stack_top = .;
 }

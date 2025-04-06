@@ -14,7 +14,7 @@
  * Programmer's Reference, 4.9 Interrupt Controllers
  */
 
-#define VIC_BASE_ADDR 0xFFFFF000
+#define VIC_BASE_ADDR 0x10140000
 
 /*
  * PrimeCell Vectored Interrupt Controller (PL190) Technical Reference Manual

@@ -33,7 +33,6 @@ void uart_init(uint32_t uartno, void* bar) {
   // when running on QEMU, the UARTs are
   // already initialized, as long as we
   // do not rely on interrupts.
-    uart_enable(uartno);
 }
 
 void uarts_init() {
@@ -44,30 +43,31 @@ void uarts_init() {
 
 void uart_enable(uint32_t uartno) {
     struct uart*uart = &uarts[uartno];
-    // Agir sur le registre UARTIMSC pour activer les interruptions
-    volatile uint32_t* uart_imsc = (volatile uint32_t*)((uintptr_t)uart->bar + UARTIMSC);
-    *uart_imsc = 1;
+    // On active l'interruption de reception sur le registre IMSC
+    // qui correspond au registre d'activation des interruptions
+    *((volatile uint32_t*)(uart->bar + UARTIMSC)) |= 1<<4;
+    // desactiver l'interruption de transmission
+    // en mode IRQ
+    *((volatile uint32_t*)(uart->bar + UARTIMSC)) &= ~(1<<5);
 }
 
 void uart_disable(uint32_t uartno) {
     struct uart*uart = &uarts[uartno];
-    // Agir sur le registre UARTIMSC pour désactiver les interruptions
-    volatile uint32_t* uart_imsc = (volatile uint32_t*)((uintptr_t)uart->bar + UARTIMSC);
-    *uart_imsc = 0;
+    // désactiver l'interruption de reception
+    // en mode IRQ
+    *((volatile uint32_t*)(uart->bar + UARTIMSC)) &= ~(1<<4);
+    // désactiver l'interruption de transmission
+    // en mode IRQ
+    *((volatile uint32_t*)(uart->bar + UARTIMSC)) &= ~(1<<5);
 }
 
 void uart_receive(uint8_t uartno, char *pt) {
     struct uart* uart = &uarts[uartno];
-    volatile uint32_t* uart_dr = (volatile uint32_t*)((uintptr_t)uart->bar + UART_DR);
-    volatile uint32_t* uart_fr = (volatile uint32_t*)((uintptr_t)uart->bar + UART_FR);
+    // tant que le bit 4 du registre de flag est a 1 le fifo de reception est vide il faut attendre
+    //pour pouvoir lire des données de l'uart
+    while(mmio_read32(uart->bar,UART_FR ) & 1<<4){}
 
-    // Attendre jusqu'à ce qu'il y ait des données disponibles
-    while (*uart_fr & (1 << 4)) {
-        // Le bit 4 du registre de statut (FR) indique si le FIFO RX est vide
-    }
-
-    // Lire le caractère du registre de données (DR)
-    *pt = (char)(*uart_dr & 0xFF);
+    *pt = (char)mmio_read32(uart->bar,UART_DR );
 }
 
 /**
@@ -76,16 +76,12 @@ void uart_receive(uint8_t uartno, char *pt) {
  */
 void uart_send(uint8_t uartno, char s) {
     struct uart* uart = &uarts[uartno];
-    volatile uint32_t* uart_dr = (volatile uint32_t*)((uintptr_t)uart->bar + UART_DR);
-    volatile uint32_t* uart_fr = (volatile uint32_t*)((uintptr_t)uart->bar + UART_FR);
 
-    // Attendre jusqu'à ce qu'il y ait de la place dans le FIFO de transmission
-    while (*uart_fr & (1 << 5)) {
-        // Le bit 5 du registre de statut (FR) indique si le FIFO TX est plein
-    }
 
-    // Écrire le caractère dans le registre de données (DR)
-    *uart_dr = (uint32_t)s;
+    // tant que le bit 5 du registre de flag est a 1 le fifo de trans est pleins il faut attendre
+    //pour pouvoir envoyer des données vers l'uart
+    while(mmio_read32(uart->bar,UART_FR)& 1<<5){}
+    mmio_write32(uart->bar,UART_DR,s);
 }
 
 /**
