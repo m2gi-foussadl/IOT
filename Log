@@ -63,3 +63,7 @@ ensuite on stock l'état des registres avant le traitement de l'interruption afi
 On branche ensuite vers la fonction de traitement de l'interruption isr
 qui elle même va appeler la fonction de traitement de l'interruption spécifique.
 Enfin on restaure les registres et on sort de la fonction.
+
+Pour ce qui est de la gestion des flèches ou des touches spéciales, il faut utiliser le code ASCII correspondant à la touche.
+Ensuite il suffit de traiter dans le handler appelé par l'interruption pour faire le traitement que l'on veut.
+
