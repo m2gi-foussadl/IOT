@@ -48,3 +48,18 @@ Dans le handler, on va mettre des données dans la ring et dans le start on va l
 
 Avec un listener, pour uart_read, on veut que l'application lise toutes les données disponibles sinon on n'indiquera plus au listener que des données sont disponibles à lire.
 Pour le write, on veut que l'application écrive toutes les données disponibles sinon on n'indiquera plus au listener que de la place est disponible.
+
+Les interruptions ne fonctionnent pas, voila ce que j'ai compris :
+Pour chaque périphérique (comme l'UART), on active les interruptions en configurant le VIC pour appeler une fonction de rappel spécifique lorsque l'interruption se produit.
+Dans le cas de l'UART, j'ai configuré le VIC pour appeler la fonction uart_handler lorsque l'interruption se produit.
+Lorsque le VIC reçoit une interruption qui a été généré par l'uart, il prévient le Core qu'une interruption s'est produite.
+Lorsque le Core reçoit une interruption, il appelle la fonction isr. Cette fonction interroge le VIC pour déterminer quelle interruption est active
+en parcourant les 32 sources d'interruption possibles.
+Si une interruption est active, la fonction de rappel associée est appelée.
+
+Il a fallut changer dans _exception.s la fonction qui permt de gérer la routine lorsque l'on reçoit une interruption.
+En effet aupravant on avait une fonction ne faisait rien, il faut donc changer l'adresse de retour via le sub,
+ensuite on stock l'état des registres avant le traitement de l'interruption afin de pouvoir les restaurer après le traitement et reprendre normalement l'exécution du programme.
+On branche ensuite vers la fonction de traitement de l'interruption isr
+qui elle même va appeler la fonction de traitement de l'interruption spécifique.
+Enfin on restaure les registres et on sort de la fonction.
