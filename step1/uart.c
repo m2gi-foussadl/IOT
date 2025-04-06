@@ -43,28 +43,23 @@ void uarts_init() {
 
 void uart_enable(uint32_t uartno) {
     struct uart*uart = &uarts[uartno];
-    // On active l'interruption de reception sur le registre IMSC
-    // qui correspond au registre d'activation des interruptions
+    // On active l'interruption de reception sur le registre IMSC pour permettre l'emission d'interruption quand l'on reçoit des datas
     *((volatile uint32_t*)(uart->bar + UARTIMSC)) |= 1<<4;
-    // desactiver l'interruption de transmission
-    // en mode IRQ
+    // On s'assure que les interruptions sont desactivées tant que la fifo de transmission est vide
     *((volatile uint32_t*)(uart->bar + UARTIMSC)) &= ~(1<<5);
 }
 
 void uart_disable(uint32_t uartno) {
     struct uart*uart = &uarts[uartno];
-    // désactiver l'interruption de reception
-    // en mode IRQ
+    // On désactive l'interruption de reception tant que l'on reçoit des datas
     *((volatile uint32_t*)(uart->bar + UARTIMSC)) &= ~(1<<4);
-    // désactiver l'interruption de transmission
-    // en mode IRQ
+
     *((volatile uint32_t*)(uart->bar + UARTIMSC)) &= ~(1<<5);
 }
 
 void uart_receive(uint8_t uartno, char *pt) {
     struct uart* uart = &uarts[uartno];
-    // tant que le bit 4 du registre de flag est a 1 le fifo de reception est vide il faut attendre
-    //pour pouvoir lire des données de l'uart
+    // Attendre que le bit 4 du registre de flag soit à 0, ce qui signifie que le fifo de reception n'est pas vide
     while(mmio_read32(uart->bar,UART_FR ) & 1<<4){}
 
     *pt = (char)mmio_read32(uart->bar,UART_DR );
@@ -78,8 +73,7 @@ void uart_send(uint8_t uartno, char s) {
     struct uart* uart = &uarts[uartno];
 
 
-    // tant que le bit 5 du registre de flag est a 1 le fifo de trans est pleins il faut attendre
-    //pour pouvoir envoyer des données vers l'uart
+    // Attendre que le bit 5 du registre de flag soit à 0, ce qui signifie que le fifo de transmission n'est pas plein
     while(mmio_read32(uart->bar,UART_FR)& 1<<5){}
     mmio_write32(uart->bar,UART_DR,s);
 }

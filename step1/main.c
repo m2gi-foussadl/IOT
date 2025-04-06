@@ -93,9 +93,6 @@ void uart_handler(uint32_t irq, void *cookie) {
 
     }
     //Si c'est un retour chariot, on termine la ligne
-    // Si c'est un retour chariot, on passe à la ligne suivante
-    // Si c'est un retour chariot, on passe à la ligne suivante
-    // Si c'est un retour chariot, on passe à la ligne suivante
     if (c == '\r' || c == '\n') {
         uart_send_string(UART0, "\n");
         pos = 0;

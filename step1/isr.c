@@ -78,8 +78,9 @@ void vic_setup_irqs() {
     for (uint32_t i = 0; i < NIRQS; i++) {
         vic_disable_irq(i);
     }
+    // On clear le VIC des interruptions
     *(volatile uint32_t*)(VIC_BASE_ADDR + VICINTCLEAR) = 0xFFFFFFFF;
-    // toutes les interruptions sont désactivées
+    // On met à zéro le registre qui permet de savoir si une interruption est active
     *(volatile uint32_t*)(VIC_BASE_ADDR + VICINTENABLE) = 0x00000000;
 }
 
