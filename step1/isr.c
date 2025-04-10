@@ -65,6 +65,7 @@ void core_disable_irqs() {
 }
 
 void core_halt() {
+    core_enable_irqs();
   _wfi();
 }
 

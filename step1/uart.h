@@ -24,6 +24,7 @@
 #define UART1 1
 #define UART2 2
 
+void uart_interrupt_ack();
 /*
  * Receives a one-byte character, which is compatible
  * with ASCII encoding. This function blocks, spinning,

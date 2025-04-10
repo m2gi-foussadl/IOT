@@ -15,6 +15,7 @@
 #include "main.h"
 #include "uart.h"
 #include "uart-mmio.h"
+#include "ring_buffer.h"
 
 struct uart {
   uint8_t uartno; // the UART numéro
@@ -34,7 +35,13 @@ void uart_init(uint32_t uartno, void* bar) {
   // already initialized, as long as we
   // do not rely on interrupts.
 }
-
+void uart_interrupt_ack() {
+    // On lit le registre de status des interruptions
+    // pour vider le FIFO de reception
+    *((volatile uint32_t*)(UART0_BASE_ADDRESS + UARTMIS)) = 0;
+    // On vide le FIFO de reception
+    *((volatile uint32_t*)(UART0_BASE_ADDRESS + UARTICR)) = 0;
+}
 void uarts_init() {
   uart_init(UART0,UART0_BASE_ADDRESS);
   uart_init(UART1,UART1_BASE_ADDRESS);

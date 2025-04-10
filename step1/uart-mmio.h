@@ -37,8 +37,8 @@
 #define UART_DR 0x000 // D'après la doc de UART_PL011, le registre de données est à l'offset 0x00
 #define UART_FR 0x018 // D'après la doc de UART_PL011, le registre de status est à l'offset 0x18
 
-#define UARTIMSC 0x038 // D'après la doc de UART_PL011, le registre d'activation des interruptions est à l'offset 0x38
-#define UARTRIS 0x03C
-#define UARTMIS 0x040
-#define UARTICR 0x044
+#define UARTIMSC 0x038 // D'après la doc de UART_PL011, le registre des masks de set/clear des interruptions est à l'offset 0x38
+#define UARTRIS  0x03C // D'après la doc de UART_PL011, le registre de status des interruptions est à l'offset 0x3C
+#define UARTMIS  0x040 // D'après la doc de UART_PL011, le registre des masques du status d'interruptions est à l'offset 0x40
+#define UARTICR  0x044 // D'après la doc de UART_PL011, le registre de clear des interruptions est à l'offset 0x44
 #endif /* UART_MMIO_H_ */
